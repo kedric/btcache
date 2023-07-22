@@ -12,6 +12,7 @@ const (
 	DeleteEventReplaced DeleteEvent = iota
 	DeleteEventLifeTime
 	DeleteEventMaxItem
+	DeleteEventDeleted
 )
 
 type CacheKey[K any] interface {
@@ -76,6 +77,15 @@ func (impl *Cache[K, V]) Set(key K, value V) {
 	}
 	if v, ok := impl.tree.ReplaceOrInsert(tmp); ok {
 		impl.config.OnDelete(DeleteEventReplaced, v.Key, v.Value)
+	}
+}
+
+func (impl *Cache[K, V]) Delete(key K) {
+	tmp := &cacheItem[K, V]{
+		Key: key,
+	}
+	if v, ok := impl.tree.Delete(tmp); ok {
+		impl.config.OnDelete(DeleteEventDeleted, v.Key, v.Value)
 	}
 }
 
